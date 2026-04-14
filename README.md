@@ -19,7 +19,7 @@
 
 ## Разработчик
 
-- [Кабаков Иван](https://github.com/Kabakov-Ivan)
+[Кабаков Иван](https://github.com/Kabakov-Ivan)
 
 ## Лицензия
 
