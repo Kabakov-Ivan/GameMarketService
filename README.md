@@ -11,11 +11,11 @@
 
 ## О сервисе
 
-Algorithmization and programming is a discipline that studies methods for developing algorithms and implementing them using programming languages, in our case, C#. Algorithmization helps create clear and efficient sequences of actions to solve problems, while programming turns these algorithms into working code. As part of this subject, we learn the fundamental constructs of C# (variables, conditions, loops, methods), work with data structures (arrays, lists), study object-oriented programming (classes, inheritance, polymorphism), and apply our knowledge to develop programs of varying complexity.
+Это сервис для организации совместных поездок, где водители создают поездки, а попутчики могут находить их и бронировать места. Сервис обеспечивает удобное взаимодействие между пользователями и управление поездками без реализации оплаты.
 
 ## Что уже реализованно:
 
-Here is a list of tasks I have completed. You can review each of them.
+Доменный слой.
 
 ## Разработчик
 
