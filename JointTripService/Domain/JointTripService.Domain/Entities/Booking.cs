@@ -1,14 +1,15 @@
 using JointTripService.Domain.Base;
 using JointTripService.Domain.Enums;
 using JointTripService.Domain.Exceptions;
+using JointTripService.ValueObjects;
 
 namespace JointTripService.Domain.Entities;
 
 public class Booking : Entity<Guid>
 {
-    public User Passenger { get; private set; } = default!;
+    public Passenger Passenger { get; private set; } = default!;
     public Trip Trip { get; private set; } = default!;
-    public int SeatsCount { get; private set; }
+    public SeatsCount SeatsCount { get; private set; } = default!;
     public BookingStatus Status { get; private set; }
     public DateTime CreationData { get; }
     public DateTime? ModificationData { get; private set; }
@@ -17,12 +18,12 @@ public class Booking : Entity<Guid>
     {
     }
 
-    public Booking(User passenger, Trip trip, int seatsCount)
+    public Booking(Passenger passenger, Trip trip, SeatsCount seatsCount)
         : this(Guid.NewGuid(), passenger, trip, seatsCount)
     {
     }
 
-    protected Booking(Guid id, User passenger, Trip trip, int seatsCount)
+    protected Booking(Guid id, Passenger passenger, Trip trip, SeatsCount seatsCount)
         : base(id)
     {
         if (id == Guid.Empty)
@@ -31,11 +32,11 @@ public class Booking : Entity<Guid>
         Passenger = passenger ?? throw new ArgumentNullValueException(nameof(passenger));
         Trip = trip ?? throw new ArgumentNullValueException(nameof(trip));
 
-        if (Passenger == Trip.Driver)
+        if (Passenger.Email == Trip.Driver.Email)
             throw new TripCannotBeBookedByDriverException(trip);
 
-        if (seatsCount <= 0)
-            throw new ArgumentOutOfRangeException(nameof(seatsCount));
+        if (seatsCount == null)
+            throw new ArgumentNullValueException(nameof(seatsCount));
 
         if (Trip.Status != TripStatus.Published)
             throw new TripCannotBeBookedException(trip);
@@ -55,7 +56,7 @@ public class Booking : Entity<Guid>
         if (Trip.Status != TripStatus.Published)
             throw new BookingCannotBeApprovedException(this);
 
-        if (Trip.AvailableSeats < SeatsCount)
+        if (Trip.AvailableSeats < SeatsCount.Value)
             throw new TripHasNoAvailableSeatsException(Trip);
 
         Trip.BookSeats(SeatsCount);

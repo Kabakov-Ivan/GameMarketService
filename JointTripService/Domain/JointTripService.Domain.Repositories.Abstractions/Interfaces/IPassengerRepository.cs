@@ -3,7 +3,7 @@ using JointTripService.Domain.Repositories.Abstractions.Base;
 
 namespace JointTripService.Domain.Repositories.Abstractions.Interfaces;
 
-public interface IUserRepository : IRepository<User, Guid>
+public interface IPassengerRepository : IRepository<Passenger, Guid>
 {
-    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+    Task<Passenger?> GetPassengerByEmailAsync(string email, CancellationToken cancellationToken);
 }
