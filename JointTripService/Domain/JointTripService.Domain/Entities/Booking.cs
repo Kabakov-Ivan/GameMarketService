@@ -48,7 +48,7 @@ public class Booking : Entity<Guid>
         Trip.AddBooking(this);
     }
 
-    public bool Approve()
+    internal bool Confirm()
     {
         if (Status != BookingStatus.Pending)
             throw new BookingCannotBeApprovedException(this);
@@ -64,7 +64,7 @@ public class Booking : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool Reject()
+    internal bool RejectBooking()
     {
         if (Status != BookingStatus.Pending)
             throw new BookingCannotBeRejectedException(this);

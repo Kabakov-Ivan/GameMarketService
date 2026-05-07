@@ -68,7 +68,7 @@ public class Driver : User
         return isCancel;
     }
 
-    public bool ApproveBooking(Booking booking)
+    public bool ConfirmBooking(Booking booking)
     {
         if (booking == null)
             throw new ArgumentNullValueException(nameof(booking));
@@ -76,13 +76,16 @@ public class Driver : User
         if (booking.Trip.Driver != this)
             throw new InvalidOperationException("Driver cannot approve booking for another driver trip");
 
-        var isApproved = booking.Approve();
+        var isApproved = booking.Confirm();
 
         if (isApproved)
             ModificationData = DateTime.UtcNow;
 
         return isApproved;
     }
+
+    public bool ApproveBooking(Booking booking)
+        => ConfirmBooking(booking);
 
     public bool RejectBooking(Booking booking)
     {
@@ -92,7 +95,7 @@ public class Driver : User
         if (booking.Trip.Driver != this)
             throw new InvalidOperationException("Driver cannot reject booking for another driver trip");
 
-        var isRejected = booking.Reject();
+        var isRejected = booking.RejectBooking();
 
         if (isRejected)
             ModificationData = DateTime.UtcNow;

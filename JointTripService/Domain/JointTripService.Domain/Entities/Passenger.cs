@@ -17,7 +17,7 @@ public class Passenger : User
     {
     }
 
-    public Booking CreateBooking(Trip trip, SeatsCount seatsCount)
+    public Booking BookTrip(Trip trip, SeatsCount seatsCount)
     {
         if (trip == null)
             throw new ArgumentNullValueException(nameof(trip));
@@ -30,4 +30,7 @@ public class Passenger : User
         ModificationData = DateTime.UtcNow;
         return booking;
     }
+
+    public Booking CreateBooking(Trip trip, SeatsCount seatsCount)
+        => BookTrip(trip, seatsCount);
 }

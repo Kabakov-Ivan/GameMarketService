@@ -2,8 +2,8 @@ using JointTripService.Domain.Entities;
 using JointTripService.Domain.Enums;
 using JointTripService.ValueObjects;
 
-var driver = new Driver(Guid.NewGuid(), new FullName("Ivan Petrov"), new Email("ivan.petrov@example.com"));
-var passenger = new Passenger(Guid.NewGuid(), new FullName("Anna Smirnova"), new Email("anna.smirnova@example.com"));
+var driver = new Driver(Guid.NewGuid(), new FullName("Иван Петров"), new Email("ivan.petrov@example.com"));
+var passenger = new Passenger(Guid.NewGuid(), new FullName("Анна Смирнова"), new Email("anna.smirnova@example.com"));
 
 var trip = driver.CreateTrip(
     new City("Москва"),
@@ -14,8 +14,8 @@ var trip = driver.CreateTrip(
 
 trip.Publish();
 
-var booking = passenger.CreateBooking(trip, new SeatsCount(1));
-driver.ApproveBooking(booking);
+var booking = passenger.BookTrip(trip, new SeatsCount(1));
+driver.ConfirmBooking(booking);
 
 var review = passenger.LeaveReview(driver, trip, 5, new ReviewText("Хорошая поездка"));
 
