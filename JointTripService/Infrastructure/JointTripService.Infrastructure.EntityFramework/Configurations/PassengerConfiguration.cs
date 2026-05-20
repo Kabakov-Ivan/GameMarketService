@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using JointTripService.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace JointTripService.Infrastructure.EntityFramework.Configurations
+namespace JointTripService.Infrastructure.EntityFramework.Configurations;
+
+public class PassengerConfiguration : IEntityTypeConfiguration<Passenger>
 {
-    internal class PassengerConfiguration
+    public void Configure(EntityTypeBuilder<Passenger> builder)
     {
+        builder.HasBaseType<User>();
+        builder.Ignore(x => x.Bookings);
     }
 }

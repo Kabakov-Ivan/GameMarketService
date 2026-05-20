@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using JointTripService.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace JointTripService.Infrastructure.EntityFramework.Configurations
+namespace JointTripService.Infrastructure.EntityFramework.Configurations;
+
+public class DriverConfiguration : IEntityTypeConfiguration<Driver>
 {
-    internal class DriverConfiguration
+    public void Configure(EntityTypeBuilder<Driver> builder)
     {
+        builder.HasBaseType<User>();
+        builder.Ignore(x => x.Trips);
     }
 }
