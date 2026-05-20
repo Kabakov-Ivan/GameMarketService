@@ -2,7 +2,6 @@
 using JointTripService.Domain.Repositories.Abstractions.Base;
 using JointTripService.Infrastructure.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using NotesService.Infrastructure.EntityFramework;
 
 namespace JointTripService.Infrastructure.EntityFramework.RepositoriesEF;
 
