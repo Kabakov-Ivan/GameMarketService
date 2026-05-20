@@ -1,17 +1,19 @@
 ﻿using JointTripService.Domain.Base;
 using JointTripService.Domain.Repositories.Abstractions.Base;
+using JointTripService.Infrastructure.EntityFramework;
 using Microsoft.EntityFrameworkCore;
+using NotesService.Infrastructure.EntityFramework;
 
-namespace AuctionTrading.Infrastructure.EntityFramework.RepositoriesEF;
+namespace JointTripService.Infrastructure.EntityFramework.RepositoriesEF;
 
 public class EfRepository<TEntity, TId>(ApplicationDbContext context)
-        : IRepository<TEntity, TId>
-        where TEntity : Entity<TId>
-        where TId : struct, IEquatable<TId>
+    : IRepository<TEntity, TId>
+    where TEntity : Entity<TId>
+    where TId : struct, IEquatable<TId>
 {
     public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken, bool asNoTracking = false)
         => await (asNoTracking ? context.Set<TEntity>().AsNoTracking() : context.Set<TEntity>())
-        .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
 
     public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken)
         => await context.Set<TEntity>().FindAsync(id, cancellationToken);
@@ -45,6 +47,5 @@ public class EfRepository<TEntity, TId>(ApplicationDbContext context)
         var entity = await GetByIdAsync(id, cancellationToken);
 
         return entity is null ? false : await DeleteAsync(entity, cancellationToken);
-
     }
 }
