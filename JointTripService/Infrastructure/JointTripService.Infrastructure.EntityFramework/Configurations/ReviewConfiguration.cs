@@ -12,6 +12,10 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).IsRequired();
+        builder.Property(x => x.AuthorId).IsRequired();
+        builder.Property(x => x.TargetId).IsRequired();
+        builder.Property(x => x.AuthorIsDriver).IsRequired();
+        builder.Property(x => x.TargetIsDriver).IsRequired();
         builder.Property(x => x.Rating).IsRequired();
         builder.Property(x => x.Text)
             .IsRequired()
@@ -27,14 +31,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             src => !src.HasValue ? src : src.Value.Kind == DateTimeKind.Utc ? src : DateTime.SpecifyKind(src.Value, DateTimeKind.Utc),
             dst => !dst.HasValue ? dst : dst.Value.Kind == DateTimeKind.Utc ? dst : DateTime.SpecifyKind(dst.Value, DateTimeKind.Utc)
         );
-        builder.HasOne(x => x.Author)
-            .WithMany("_reviewsWritten")
-            .HasForeignKey("AuthorId")
-            .HasPrincipalKey(x => x.Id);
-        builder.HasOne(x => x.TargetUser)
-            .WithMany("_reviewsReceived")
-            .HasForeignKey("TargetUserId")
-            .HasPrincipalKey(x => x.Id);
         builder.HasOne(x => x.Trip)
             .WithMany()
             .HasForeignKey("TripId")

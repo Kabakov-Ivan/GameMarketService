@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JointTripService.Infrastructure.EntityFramework.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260522081328_Initial")]
+    [Migration("20260522102529_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -58,6 +58,60 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("JointTripService.Domain.Entities.Driver", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationData")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime?>("ModificationData")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Drivers");
+                });
+
+            modelBuilder.Entity("JointTripService.Domain.Entities.Passenger", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationData")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime?>("ModificationData")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Passengers");
+                });
+
             modelBuilder.Entity("JointTripService.Domain.Entities.Review", b =>
                 {
                     b.Property<Guid>("Id")
@@ -66,6 +120,9 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("AuthorIsDriver")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("CreationData")
                         .HasColumnType("timestamp with time zone");
@@ -76,8 +133,11 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TargetUserId")
+                    b.Property<Guid>("TargetId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("TargetIsDriver")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -88,10 +148,6 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("TargetUserId");
 
                     b.HasIndex("TripId");
 
@@ -145,49 +201,6 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                     b.ToTable("Trips");
                 });
 
-            modelBuilder.Entity("JointTripService.Domain.Entities.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationData")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<DateTime?>("ModificationData")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-
-                    b.UseTptMappingStrategy();
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.Driver", b =>
-                {
-                    b.HasBaseType("JointTripService.Domain.Entities.User");
-
-                    b.ToTable("Drivers", (string)null);
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.Passenger", b =>
-                {
-                    b.HasBaseType("JointTripService.Domain.Entities.User");
-
-                    b.ToTable("Passengers", (string)null);
-                });
-
             modelBuilder.Entity("JointTripService.Domain.Entities.Booking", b =>
                 {
                     b.HasOne("JointTripService.Domain.Entities.Passenger", "Passenger")
@@ -209,27 +222,11 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
 
             modelBuilder.Entity("JointTripService.Domain.Entities.Review", b =>
                 {
-                    b.HasOne("JointTripService.Domain.Entities.User", "Author")
-                        .WithMany("_reviewsWritten")
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("JointTripService.Domain.Entities.User", "TargetUser")
-                        .WithMany("_reviewsReceived")
-                        .HasForeignKey("TargetUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("JointTripService.Domain.Entities.Trip", "Trip")
                         .WithMany()
                         .HasForeignKey("TripId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("TargetUser");
 
                     b.Navigation("Trip");
                 });
@@ -247,40 +244,15 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
 
             modelBuilder.Entity("JointTripService.Domain.Entities.Driver", b =>
                 {
-                    b.HasOne("JointTripService.Domain.Entities.User", null)
-                        .WithOne()
-                        .HasForeignKey("JointTripService.Domain.Entities.Driver", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.Passenger", b =>
-                {
-                    b.HasOne("JointTripService.Domain.Entities.User", null)
-                        .WithOne()
-                        .HasForeignKey("JointTripService.Domain.Entities.Passenger", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.Trip", b =>
-                {
-                    b.Navigation("_bookings");
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.User", b =>
-                {
-                    b.Navigation("_reviewsReceived");
-
-                    b.Navigation("_reviewsWritten");
-                });
-
-            modelBuilder.Entity("JointTripService.Domain.Entities.Driver", b =>
-                {
                     b.Navigation("_trips");
                 });
 
             modelBuilder.Entity("JointTripService.Domain.Entities.Passenger", b =>
+                {
+                    b.Navigation("_bookings");
+                });
+
+            modelBuilder.Entity("JointTripService.Domain.Entities.Trip", b =>
                 {
                     b.Navigation("_bookings");
                 });

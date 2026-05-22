@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\JointTripService.Domain\JointTripService.Domain.csproj" />
     <ProjectReference Include="..\JointTripService.Domain.Repositories.Abstractions\JointTripService.Domain.Repositories.Abstractions.csproj" />
   </ItemGroup>

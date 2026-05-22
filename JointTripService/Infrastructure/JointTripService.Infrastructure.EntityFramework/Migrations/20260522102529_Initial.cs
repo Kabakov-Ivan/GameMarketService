@@ -12,7 +12,7 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Drivers",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -23,41 +23,22 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Drivers",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
                     table.PrimaryKey("PK_Drivers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Drivers_Users_Id",
-                        column: x => x.Id,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Passengers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FullName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CreationData = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ModificationData = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Passengers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Passengers_Users_Id",
-                        column: x => x.Id,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -122,7 +103,9 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TargetUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TargetId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AuthorIsDriver = table.Column<bool>(type: "boolean", nullable: false),
+                    TargetIsDriver = table.Column<bool>(type: "boolean", nullable: false),
                     TripId = table.Column<Guid>(type: "uuid", nullable: false),
                     Rating = table.Column<int>(type: "integer", nullable: false),
                     Text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
@@ -138,18 +121,6 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                         principalTable: "Trips",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_Users_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_Users_TargetUserId",
-                        column: x => x.TargetUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -161,16 +132,6 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
                 name: "IX_Bookings_TripId",
                 table: "Bookings",
                 column: "TripId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Reviews_AuthorId",
-                table: "Reviews",
-                column: "AuthorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Reviews_TargetUserId",
-                table: "Reviews",
-                column: "TargetUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_TripId",
@@ -200,9 +161,6 @@ namespace JointTripService.Infrastructure.EntityFramework.Migrations
 
             migrationBuilder.DropTable(
                 name: "Drivers");
-
-            migrationBuilder.DropTable(
-                name: "Users");
         }
     }
 }
