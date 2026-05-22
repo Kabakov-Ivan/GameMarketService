@@ -12,7 +12,7 @@ var trip = driver.CreateTrip(
     new SeatsCount(3),
     "Утренняя поездка");
 
-trip.Publish();
+driver.PublishTrip(trip);
 
 var booking = passenger.BookTrip(trip, new SeatsCount(1));
 driver.ConfirmBooking(booking);

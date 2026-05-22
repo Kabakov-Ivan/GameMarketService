@@ -1,4 +1,4 @@
 namespace JointTripService.Domain.Exceptions;
 
 public class ArgumentNullValueException(string paramName)
-    : ArgumentNullException(paramName, $"Argument \"{paramName}\" value is null");
+    : ArgumentNullException(paramName, $"Значение аргумента \"{paramName}\" не должно быть null");

@@ -18,6 +18,6 @@ public class EmailValidator : IValidator<string>
             throw new ArgumentLongValueException(nameof(value), value, MAX_LENGTH);
 
         if (!value.Contains('@') || value.StartsWith('@') || value.EndsWith('@'))
-            throw new ArgumentException("Invalid email format", nameof(value));
+            throw new ArgumentException("Некорректный формат email", nameof(value));
     }
 }

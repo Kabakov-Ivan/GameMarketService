@@ -76,10 +76,10 @@ public class Booking : Entity<Guid>
     public bool Cancel()
     {
         if (Status == BookingStatus.Cancelled)
-            throw new BookingCannotBeCancelledException("The booking is already cancelled");
+            throw new BookingCannotBeCancelledException("Бронирование уже отменено");
 
         if (Status == BookingStatus.Rejected)
-            throw new BookingCannotBeCancelledException("The booking is already rejected");
+            throw new BookingCannotBeCancelledException("Бронирование уже отклонено");
 
         if (Status == BookingStatus.Approved)
             Trip.ReleaseSeats(SeatsCount);

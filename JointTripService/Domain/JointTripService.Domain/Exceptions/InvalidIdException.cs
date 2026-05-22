@@ -1,6 +1,6 @@
 namespace JointTripService.Domain.Exceptions;
 
 public class InvalidIdException()
-    : DomainException("Id value is invalid")
+    : DomainException("Идентификатор имеет некорректное значение")
 {
 }
