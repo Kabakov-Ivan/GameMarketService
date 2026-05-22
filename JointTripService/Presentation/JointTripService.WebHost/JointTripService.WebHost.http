@@ -1,0 +1,6 @@
+@JointTripService.WebHost_HostAddress = http://localhost:5276
+
+GET {{JointTripService.WebHost_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

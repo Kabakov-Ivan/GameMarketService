@@ -24,8 +24,4 @@
     <ProjectReference Include="..\..\Domain\JointTripService.Domain\JointTripService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

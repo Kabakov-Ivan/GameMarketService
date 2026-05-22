@@ -8,7 +8,7 @@ public class PassengerConfiguration : IEntityTypeConfiguration<Passenger>
 {
     public void Configure(EntityTypeBuilder<Passenger> builder)
     {
-        builder.HasBaseType<User>();
+        builder.ToTable("Passengers");
         builder.Ignore(x => x.Bookings);
     }
 }

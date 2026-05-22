@@ -8,7 +8,7 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
 {
     public void Configure(EntityTypeBuilder<Driver> builder)
     {
-        builder.HasBaseType<User>();
+        builder.ToTable("Drivers");
         builder.Ignore(x => x.Trips);
     }
 }

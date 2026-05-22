@@ -8,5 +8,7 @@
   <Folder Name="/Infrastructure/">
     <Project Path="Infrastructure/JointTripService.Infrastructure.EntityFramework/JointTripService.Infrastructure.EntityFramework.csproj" Id="3bc0f4ad-ad4d-4ce0-b637-8190fec5f8f5" />
   </Folder>
-  <Folder Name="/Presentation/" />
+  <Folder Name="/Presentation/">
+    <Project Path="Presentation/JointTripService.WebHost/JointTripService.WebHost.csproj" Id="bdfe47a1-f7f8-4e4b-804e-fd368fd650d0" />
+  </Folder>
 </Solution>

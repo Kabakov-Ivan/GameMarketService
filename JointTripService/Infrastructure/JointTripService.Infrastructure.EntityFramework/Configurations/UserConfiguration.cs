@@ -10,6 +10,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        builder.UseTptMappingStrategy();
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).IsRequired();
         builder.Property(x => x.FullName)
