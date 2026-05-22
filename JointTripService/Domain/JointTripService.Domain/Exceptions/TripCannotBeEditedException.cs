@@ -3,7 +3,7 @@ using JointTripService.Domain.Entities;
 namespace JointTripService.Domain.Exceptions;
 
 public class TripCannotBeEditedException(Trip trip)
-    : DomainException($"The trip {trip.Id} cannot be edited in the current state")
+    : DomainException($"Поездка {trip.Id} не может быть изменена в текущем состоянии")
 {
     public Trip Trip => trip;
 }

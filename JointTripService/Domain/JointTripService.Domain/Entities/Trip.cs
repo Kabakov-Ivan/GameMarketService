@@ -43,7 +43,7 @@ public class Trip : Entity<Guid>
         SeatsCount = seatsCount ?? throw new ArgumentNullValueException(nameof(seatsCount));
 
         if (Origin == Destination)
-            throw new ArgumentException("Origin and destination must be different");
+            throw new ArgumentException("Пункт отправления и пункт назначения должны отличаться");
 
         DepartureAt = departureAt;
         AvailableSeats = seatsCount.Value;
@@ -52,7 +52,7 @@ public class Trip : Entity<Guid>
         CreationData = DateTime.UtcNow;
     }
 
-    public bool ChangeOrigin(City newOrigin)
+    internal bool ChangeOrigin(City newOrigin)
     {
         EnsureEditable();
 
@@ -66,7 +66,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool ChangeDestination(City newDestination)
+    internal bool ChangeDestination(City newDestination)
     {
         EnsureEditable();
 
@@ -80,7 +80,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool ChangeDepartureAt(DateTime newDepartureAt)
+    internal bool ChangeDepartureAt(DateTime newDepartureAt)
     {
         EnsureEditable();
 
@@ -91,7 +91,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool ChangeSeatsCount(SeatsCount newSeatsCount)
+    internal bool ChangeSeatsCount(SeatsCount newSeatsCount)
     {
         EnsureEditable();
 
@@ -111,7 +111,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool ChangeDescription(string? newDescription)
+    internal bool ChangeDescription(string? newDescription)
     {
         EnsureEditable();
 
@@ -124,7 +124,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool Publish()
+    internal bool Publish()
     {
         if (Status != TripStatus.Draft)
             throw new TripCannotBePublishedException(this);
@@ -133,16 +133,16 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool Complete()
+    internal bool Complete()
     {
         if (Status != TripStatus.Published)
-            throw new InvalidOperationException("Only published trips can be completed");
+            throw new InvalidOperationException("Завершить можно только опубликованную поездку");
 
         Status = TripStatus.Completed;
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool Cancel()
+    internal bool Cancel()
     {
         if (Status is TripStatus.Cancelled or TripStatus.Completed)
             throw new TripCannotBeCancelledException(this);
@@ -151,7 +151,7 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool BookSeats(SeatsCount seatsCount)
+    internal bool BookSeats(SeatsCount seatsCount)
     {
         if (seatsCount == null)
             throw new ArgumentNullValueException(nameof(seatsCount));
@@ -166,27 +166,35 @@ public class Trip : Entity<Guid>
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool ReleaseSeats(SeatsCount seatsCount)
+    internal bool ReleaseSeats(SeatsCount seatsCount)
     {
         if (seatsCount == null)
             throw new ArgumentNullValueException(nameof(seatsCount));
 
         if (AvailableSeats + seatsCount.Value > SeatsCount.Value)
-            throw new InvalidOperationException("Cannot release more seats than total seats");
+            throw new InvalidOperationException("Нельзя освободить мест больше, чем всего доступно");
 
         AvailableSeats += seatsCount.Value;
         return SetModificationData(DateTime.UtcNow);
     }
 
-    public bool HasParticipant(User user)
+    public bool HasDriver(Driver driver)
     {
-        if (user == null)
+        if (driver == null)
             return false;
 
-        return Driver == user || _bookings.Any(x => x.Passenger == user && x.Status == BookingStatus.Approved);
+        return Driver.Id == driver.Id;
     }
 
-    public void AddBooking(Booking booking)
+    public bool HasPassenger(Passenger passenger)
+    {
+        if (passenger == null)
+            return false;
+
+        return _bookings.Any(x => x.Passenger.Id == passenger.Id && x.Status == BookingStatus.Approved);
+    }
+
+    internal void AddBooking(Booking booking)
     {
         if (booking == null)
             throw new ArgumentNullValueException(nameof(booking));
