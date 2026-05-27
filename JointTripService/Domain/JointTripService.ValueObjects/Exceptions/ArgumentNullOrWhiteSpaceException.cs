@@ -1,4 +1,4 @@
 namespace JointTripService.ValueObjects.Exceptions;
 
 public class ArgumentNullOrWhiteSpaceException(string paramName)
-    : ArgumentException($"Argument \"{paramName}\" is null, empty or whitespace", paramName);
+    : ArgumentException($"Значение аргумента \"{paramName}\" не должно быть null, пустым или состоять только из пробелов", paramName);
