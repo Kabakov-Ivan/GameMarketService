@@ -10,8 +10,12 @@ public class Review : Entity<Guid>
     public Guid TargetId { get; private set; }
     public bool AuthorIsDriver { get; private set; }
     public bool TargetIsDriver { get; private set; }
+    public Driver? AuthorDriver { get; private set; }
+    public Passenger? AuthorPassenger { get; private set; }
+    public Driver? TargetDriver { get; private set; }
+    public Passenger? TargetPassenger { get; private set; }
     public Trip Trip { get; private set; } = default!;
-    public int Rating { get; private set; }
+    public ReviewRating Rating { get; private set; } = default!;
     public ReviewText Text { get; private set; } = default!;
     public DateTime CreationData { get; }
     public DateTime? ModificationData { get; private set; }
@@ -20,17 +24,17 @@ public class Review : Entity<Guid>
     {
     }
 
-    public Review(Driver author, Passenger targetPassenger, Trip trip, int rating, ReviewText text)
-        : this(Guid.NewGuid(), author, targetPassenger, trip, rating, text)
+    public Review(Driver author, Passenger targetPassenger, Trip trip, ReviewRating rating, ReviewText text, DateTime? creationData = null, DateTime? modificationData = null)
+        : this(Guid.NewGuid(), author, targetPassenger, trip, rating, text, creationData, modificationData)
     {
     }
 
-    public Review(Passenger author, Driver targetDriver, Trip trip, int rating, ReviewText text)
-        : this(Guid.NewGuid(), author, targetDriver, trip, rating, text)
+    public Review(Passenger author, Driver targetDriver, Trip trip, ReviewRating rating, ReviewText text, DateTime? creationData = null, DateTime? modificationData = null)
+        : this(Guid.NewGuid(), author, targetDriver, trip, rating, text, creationData, modificationData)
     {
     }
 
-    protected Review(Guid id, Driver author, Passenger targetPassenger, Trip trip, int rating, ReviewText text)
+    protected Review(Guid id, Driver author, Passenger targetPassenger, Trip trip, ReviewRating rating, ReviewText text, DateTime? creationData = null, DateTime? modificationData = null)
         : base(id)
     {
         if (id == Guid.Empty)
@@ -40,23 +44,23 @@ public class Review : Entity<Guid>
         TargetId = targetPassenger?.Id ?? throw new ArgumentNullValueException(nameof(targetPassenger));
         AuthorIsDriver = true;
         TargetIsDriver = false;
+        AuthorDriver = author;
+        TargetPassenger = targetPassenger;
         Trip = trip ?? throw new ArgumentNullValueException(nameof(trip));
+        Rating = rating ?? throw new ArgumentNullValueException(nameof(rating));
         Text = text ?? throw new ArgumentNullValueException(nameof(text));
 
         if (author.Id == targetPassenger.Id)
             throw new DriverCannotReviewHimselfException(author);
 
         if (!Trip.HasDriver(author) || !Trip.HasPassenger(targetPassenger))
-            throw new InvalidOperationException("Водитель и пассажир должны относиться к одной поездке");
+            throw new TripParticipantsMustBelongToSameTripException(trip);
 
-        if (rating is < 1 or > 5)
-            throw new InvalidRatingException(rating);
-
-        Rating = rating;
-        CreationData = DateTime.UtcNow;
+        CreationData = creationData ?? DateTime.UtcNow;
+        ModificationData = modificationData;
     }
 
-    protected Review(Guid id, Passenger author, Driver targetDriver, Trip trip, int rating, ReviewText text)
+    protected Review(Guid id, Passenger author, Driver targetDriver, Trip trip, ReviewRating rating, ReviewText text, DateTime? creationData = null, DateTime? modificationData = null)
         : base(id)
     {
         if (id == Guid.Empty)
@@ -66,26 +70,26 @@ public class Review : Entity<Guid>
         TargetId = targetDriver?.Id ?? throw new ArgumentNullValueException(nameof(targetDriver));
         AuthorIsDriver = false;
         TargetIsDriver = true;
+        AuthorPassenger = author;
+        TargetDriver = targetDriver;
         Trip = trip ?? throw new ArgumentNullValueException(nameof(trip));
+        Rating = rating ?? throw new ArgumentNullValueException(nameof(rating));
         Text = text ?? throw new ArgumentNullValueException(nameof(text));
 
         if (author.Id == targetDriver.Id)
             throw new PassengerCannotReviewHimselfException(author);
 
         if (!Trip.HasPassenger(author) || !Trip.HasDriver(targetDriver))
-            throw new InvalidOperationException("Водитель и пассажир должны относиться к одной поездке");
+            throw new TripParticipantsMustBelongToSameTripException(trip);
 
-        if (rating is < 1 or > 5)
-            throw new InvalidRatingException(rating);
-
-        Rating = rating;
-        CreationData = DateTime.UtcNow;
+        CreationData = creationData ?? DateTime.UtcNow;
+        ModificationData = modificationData;
     }
 
-    public bool ChangeRating(int rating)
+    public bool ChangeRating(ReviewRating rating)
     {
-        if (rating is < 1 or > 5)
-            throw new InvalidRatingException(rating);
+        if (rating == null)
+            throw new ArgumentNullValueException(nameof(rating));
 
         if (Rating == rating)
             return false;

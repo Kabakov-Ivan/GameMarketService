@@ -9,6 +9,8 @@ public class Booking : Entity<Guid>
 {
     public Passenger Passenger { get; private set; } = default!;
     public Trip Trip { get; private set; } = default!;
+    public Driver? ConfirmedByDriver { get; private set; }
+    public Driver? RejectedByDriver { get; private set; }
     public SeatsCount SeatsCount { get; private set; } = default!;
     public BookingStatus Status { get; private set; }
     public DateTime CreationData { get; }
@@ -18,12 +20,12 @@ public class Booking : Entity<Guid>
     {
     }
 
-    public Booking(Passenger passenger, Trip trip, SeatsCount seatsCount)
-        : this(Guid.NewGuid(), passenger, trip, seatsCount)
+    public Booking(Passenger passenger, Trip trip, SeatsCount seatsCount, DateTime? creationData = null, DateTime? modificationData = null)
+        : this(Guid.NewGuid(), passenger, trip, seatsCount, BookingStatus.Pending, creationData ?? DateTime.UtcNow, modificationData, null, null)
     {
     }
 
-    protected Booking(Guid id, Passenger passenger, Trip trip, SeatsCount seatsCount)
+    protected Booking(Guid id, Passenger passenger, Trip trip, SeatsCount seatsCount, BookingStatus status, DateTime creationData, DateTime? modificationData, Driver? confirmedByDriver, Driver? rejectedByDriver)
         : base(id)
     {
         if (id == Guid.Empty)
@@ -38,18 +40,25 @@ public class Booking : Entity<Guid>
         if (seatsCount == null)
             throw new ArgumentNullValueException(nameof(seatsCount));
 
-        if (Trip.Status != TripStatus.Published)
+        if (Trip.Status != TripStatus.Published && status == BookingStatus.Pending)
             throw new TripCannotBeBookedException(trip);
 
         SeatsCount = seatsCount;
-        Status = BookingStatus.Pending;
-        CreationData = DateTime.UtcNow;
-
-        Trip.AddBooking(this);
+        Status = status;
+        CreationData = creationData;
+        ModificationData = modificationData;
+        ConfirmedByDriver = confirmedByDriver;
+        RejectedByDriver = rejectedByDriver;
     }
 
-    internal bool Confirm()
+    internal bool Confirm(Driver confirmer)
     {
+        if (confirmer == null)
+            throw new ArgumentNullValueException(nameof(confirmer));
+
+        if (Trip.Driver != confirmer)
+            throw new DriverCannotManageAnotherDriversBookingException(confirmer, this);
+
         if (Status != BookingStatus.Pending)
             throw new BookingCannotBeApprovedException(this);
 
@@ -60,15 +69,23 @@ public class Booking : Entity<Guid>
             throw new TripHasNoAvailableSeatsException(Trip);
 
         Trip.BookSeats(SeatsCount);
+        ConfirmedByDriver = confirmer;
         Status = BookingStatus.Approved;
         return SetModificationData(DateTime.UtcNow);
     }
 
-    internal bool RejectBooking()
+    internal bool RejectBooking(Driver rejecter)
     {
+        if (rejecter == null)
+            throw new ArgumentNullValueException(nameof(rejecter));
+
+        if (Trip.Driver != rejecter)
+            throw new DriverCannotManageAnotherDriversBookingException(rejecter, this);
+
         if (Status != BookingStatus.Pending)
             throw new BookingCannotBeRejectedException(this);
 
+        RejectedByDriver = rejecter;
         Status = BookingStatus.Rejected;
         return SetModificationData(DateTime.UtcNow);
     }

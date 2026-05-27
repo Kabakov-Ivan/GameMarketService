@@ -23,14 +23,15 @@ public class Passenger : Entity<Guid>
     {
     }
 
-    public Passenger(Guid id, FullName fullName, Email email) : base(id)
+    public Passenger(Guid id, FullName fullName, Email email, DateTime? creationData = null, DateTime? modificationData = null) : base(id)
     {
         if (id == Guid.Empty)
             throw new InvalidIdException();
 
         FullName = fullName ?? throw new ArgumentNullValueException(nameof(fullName));
         Email = email ?? throw new ArgumentNullValueException(nameof(email));
-        CreationData = DateTime.UtcNow;
+        CreationData = creationData ?? DateTime.UtcNow;
+        ModificationData = modificationData;
     }
 
     public bool ChangeFullName(FullName newFullName)
@@ -59,24 +60,7 @@ public class Passenger : Entity<Guid>
         return true;
     }
 
-    public Booking BookTrip(Trip trip, SeatsCount seatsCount)
-    {
-        if (trip == null)
-            throw new ArgumentNullValueException(nameof(trip));
-
-        if (trip.Driver.Email == Email)
-            throw new TripCannotBeBookedByDriverException(trip);
-
-        var booking = new Booking(this, trip, seatsCount);
-        _bookings.Add(booking);
-        ModificationData = DateTime.UtcNow;
-        return booking;
-    }
-
-    public Booking CreateBooking(Trip trip, SeatsCount seatsCount)
-        => BookTrip(trip, seatsCount);
-
-    public Review LeaveReview(Driver targetDriver, Trip trip, int rating, ReviewText text)
+    public Review LeaveReview(Driver targetDriver, Trip trip, ReviewRating rating, ReviewText text)
     {
         if (targetDriver == null)
             throw new ArgumentNullValueException(nameof(targetDriver));
@@ -91,13 +75,12 @@ public class Passenger : Entity<Guid>
             throw new PassengerCannotReviewHimselfException(this);
 
         if (!trip.HasPassenger(this) || !trip.HasDriver(targetDriver))
-            throw new InvalidOperationException("Водитель и пассажир должны относиться к одной поездке");
+            throw new TripParticipantsMustBelongToSameTripException(trip);
 
         var review = new Review(this, targetDriver, trip, rating, text);
         _reviewsWritten.Add(review);
         targetDriver.AddReceivedReview(review);
         _reviewsReceived.Add(review);
-        ModificationData = DateTime.UtcNow;
         return review;
     }
 
@@ -106,7 +89,30 @@ public class Passenger : Entity<Guid>
         if (review == null)
             throw new ArgumentNullValueException(nameof(review));
 
+        if (review.TargetPassenger != this)
+            throw new ReviewIsNotForThisParticipantException(review, FullName.ToString());
+
+        if (review.AuthorDriver == null)
+            throw new ReviewAuthorDidNotParticipateInTripException(review, "неизвестный водитель");
+
+        if (!review.Trip.HasDriver(review.AuthorDriver))
+            throw new ReviewAuthorDidNotParticipateInTripException(review, review.AuthorDriver.FullName.ToString());
+
         if (!_reviewsReceived.Contains(review))
             _reviewsReceived.Add(review);
+    }
+
+    public Booking BookTrip(Trip trip, SeatsCount seatsCount)
+    {
+        if (trip == null)
+            throw new ArgumentNullValueException(nameof(trip));
+
+        if (trip.Driver.Email == Email)
+            throw new TripCannotBeBookedByDriverException(trip);
+
+        var booking = new Booking(this, trip, seatsCount);
+        _bookings.Add(booking);
+        trip.AddBooking(booking);
+        return booking;
     }
 }

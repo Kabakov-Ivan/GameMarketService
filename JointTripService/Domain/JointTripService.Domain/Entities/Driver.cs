@@ -1,4 +1,5 @@
 using JointTripService.Domain.Base;
+using JointTripService.Domain.Enums;
 using JointTripService.Domain.Exceptions;
 using JointTripService.ValueObjects;
 
@@ -16,6 +17,15 @@ public class Driver : Entity<Guid>
     public DateTime? ModificationData { get; protected set; }
 
     public IReadOnlyCollection<Trip> Trips => _trips.ToList().AsReadOnly();
+    public IReadOnlyCollection<Trip> UpcomingTrips => _trips
+        .Where(trip => trip.Status == TripStatus.Published && trip.DepartureAt > DateTime.UtcNow)
+        .ToList()
+        .AsReadOnly();
+    public IReadOnlyCollection<Booking> RequestedBookings => _trips
+        .SelectMany(trip => trip.Bookings)
+        .Where(booking => booking.Status == BookingStatus.Pending)
+        .ToList()
+        .AsReadOnly();
     public IReadOnlyCollection<Review> ReviewsWritten => _reviewsWritten.ToList().AsReadOnly();
     public IReadOnlyCollection<Review> ReviewsReceived => _reviewsReceived.ToList().AsReadOnly();
 
@@ -23,14 +33,14 @@ public class Driver : Entity<Guid>
     {
     }
 
-    public Driver(Guid id, FullName fullName, Email email) : base(id)
+    public Driver(Guid id, FullName fullName, Email email, DateTime? creationData = null) : base(id)
     {
         if (id == Guid.Empty)
             throw new InvalidIdException();
 
         FullName = fullName ?? throw new ArgumentNullValueException(nameof(fullName));
         Email = email ?? throw new ArgumentNullValueException(nameof(email));
-        CreationData = DateTime.UtcNow;
+        CreationData = creationData ?? DateTime.UtcNow;
     }
 
     public bool ChangeFullName(FullName newFullName)
@@ -59,11 +69,10 @@ public class Driver : Entity<Guid>
         return true;
     }
 
-    public Trip CreateTrip(City origin, City destination, DateTime departureAt, SeatsCount seatsCount, string? description = null)
+    public Trip CreateTrip(City origin, City destination, DateTime departureAt, SeatsCount seatsCount, TripDescription? description = null)
     {
         var trip = new Trip(this, origin, destination, departureAt, seatsCount, description);
         _trips.Add(trip);
-        ModificationData = DateTime.UtcNow;
         return trip;
     }
 
@@ -75,18 +84,12 @@ public class Driver : Entity<Guid>
         if (trip.Driver != this)
             throw new AnotherDriverEditTripException(trip, this);
 
-        if (!_trips.Contains(trip))
-            throw new AnotherDriverEditTripException(trip, this);
-
-        var isPublished = trip.Publish();
-
-        if (isPublished)
-            ModificationData = DateTime.UtcNow;
+        var isPublished = trip.Publish(this);
 
         return isPublished;
     }
 
-    public bool EditTrip(Trip trip, City origin, City destination, DateTime departureAt, SeatsCount seatsCount, string? description = null)
+    public bool EditTrip(Trip trip, City origin, City destination, DateTime departureAt, SeatsCount seatsCount, TripDescription? description = null)
     {
         if (trip == null)
             throw new ArgumentNullValueException(nameof(trip));
@@ -94,20 +97,7 @@ public class Driver : Entity<Guid>
         if (trip.Driver != this)
             throw new AnotherDriverEditTripException(trip, this);
 
-        if (!_trips.Contains(trip))
-            throw new AnotherDriverEditTripException(trip, this);
-
-        var isEdit = false;
-        isEdit |= trip.ChangeOrigin(origin);
-        isEdit |= trip.ChangeDestination(destination);
-        isEdit |= trip.ChangeDepartureAt(departureAt);
-        isEdit |= trip.ChangeSeatsCount(seatsCount);
-        isEdit |= trip.ChangeDescription(description);
-
-        if (isEdit)
-            ModificationData = DateTime.UtcNow;
-
-        return isEdit;
+        return trip.Edit(this, origin, destination, departureAt, seatsCount, description);
     }
 
     public bool CancelTrip(Trip trip)
@@ -118,13 +108,7 @@ public class Driver : Entity<Guid>
         if (trip.Driver != this)
             throw new AnotherDriverEditTripException(trip, this);
 
-        if (!_trips.Contains(trip))
-            throw new AnotherDriverEditTripException(trip, this);
-
-        var isCancel = trip.Cancel();
-
-        if (isCancel)
-            ModificationData = DateTime.UtcNow;
+        var isCancel = trip.Cancel(this);
 
         return isCancel;
     }
@@ -137,18 +121,12 @@ public class Driver : Entity<Guid>
         if (trip.Driver != this)
             throw new AnotherDriverEditTripException(trip, this);
 
-        if (!_trips.Contains(trip))
-            throw new AnotherDriverEditTripException(trip, this);
-
-        var isCompleted = trip.Complete();
-
-        if (isCompleted)
-            ModificationData = DateTime.UtcNow;
+        var isCompleted = trip.Complete(this);
 
         return isCompleted;
     }
 
-    public Review LeaveReview(Passenger targetPassenger, Trip trip, int rating, ReviewText text)
+    public Review LeaveReview(Passenger targetPassenger, Trip trip, ReviewRating rating, ReviewText text)
     {
         if (targetPassenger == null)
             throw new ArgumentNullValueException(nameof(targetPassenger));
@@ -163,13 +141,12 @@ public class Driver : Entity<Guid>
             throw new DriverCannotReviewHimselfException(this);
 
         if (!trip.HasDriver(this) || !trip.HasPassenger(targetPassenger))
-            throw new InvalidOperationException("Водитель и пассажир должны относиться к одной поездке");
+            throw new TripParticipantsMustBelongToSameTripException(trip);
 
         var review = new Review(this, targetPassenger, trip, rating, text);
         _reviewsWritten.Add(review);
         targetPassenger.AddReceivedReview(review);
         _reviewsReceived.Add(review);
-        ModificationData = DateTime.UtcNow;
         return review;
     }
 
@@ -177,6 +154,15 @@ public class Driver : Entity<Guid>
     {
         if (review == null)
             throw new ArgumentNullValueException(nameof(review));
+
+        if (review.TargetDriver != this)
+            throw new ReviewIsNotForThisParticipantException(review, FullName.ToString());
+
+        if (review.AuthorPassenger == null)
+            throw new ReviewAuthorDidNotParticipateInTripException(review, "неизвестный пассажир");
+
+        if (!review.Trip.HasPassenger(review.AuthorPassenger))
+            throw new ReviewAuthorDidNotParticipateInTripException(review, review.AuthorPassenger.FullName.ToString());
 
         if (!_reviewsReceived.Contains(review))
             _reviewsReceived.Add(review);
@@ -188,14 +174,9 @@ public class Driver : Entity<Guid>
             throw new ArgumentNullValueException(nameof(booking));
 
         if (booking.Trip.Driver != this)
-            throw new InvalidOperationException("Водитель не может подтверждать бронирование чужой поездки");
+            throw new DriverCannotManageAnotherDriversBookingException(this, booking);
 
-        var isApproved = booking.Confirm();
-
-        if (isApproved)
-            ModificationData = DateTime.UtcNow;
-
-        return isApproved;
+        return booking.Confirm(this);
     }
 
     public bool ApproveBooking(Booking booking)
@@ -207,13 +188,8 @@ public class Driver : Entity<Guid>
             throw new ArgumentNullValueException(nameof(booking));
 
         if (booking.Trip.Driver != this)
-            throw new InvalidOperationException("Водитель не может отклонять бронирование чужой поездки");
+            throw new DriverCannotManageAnotherDriversBookingException(this, booking);
 
-        var isRejected = booking.RejectBooking();
-
-        if (isRejected)
-            ModificationData = DateTime.UtcNow;
-
-        return isRejected;
+        return booking.RejectBooking(this);
     }
 }

@@ -10,14 +10,14 @@ var trip = driver.CreateTrip(
     new City("Тула"),
     DateTime.UtcNow.AddDays(1),
     new SeatsCount(3),
-    "Утренняя поездка");
+    new TripDescription("Утренняя поездка"));
 
 driver.PublishTrip(trip);
 
 var booking = passenger.BookTrip(trip, new SeatsCount(1));
 driver.ConfirmBooking(booking);
 
-var review = passenger.LeaveReview(driver, trip, 5, new ReviewText("Хорошая поездка"));
+var review = passenger.LeaveReview(driver, trip, new ReviewRating(5), new ReviewText("Хорошая поездка"));
 
 Console.WriteLine($"Поездка: {trip.Origin} -> {trip.Destination}");
 Console.WriteLine($"Свободных мест: {trip.AvailableSeats}");
@@ -29,4 +29,4 @@ Console.WriteLine($"Статус бронирования: {booking.Status switc
     BookingStatus.Cancelled => "Отменено",
     _ => booking.Status.ToString()
 }}");
-Console.WriteLine($"Оценка отзыва: {review.Rating}");
+Console.WriteLine($"Оценка отзыва: {review.Rating.Value}");
