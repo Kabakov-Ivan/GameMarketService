@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Domain/JointTripService.Domain.Repositories.Abstractions/JointTripService.Domain.Repositories.Abstractions.csproj" Id="f1cfe3b8-53a1-4e4c-bc58-5a5c3a79d001" />
+  <Project Path="Domain/JointTripService.Domain/JointTripService.Domain.csproj" Id="f7c7e9f0-0f13-4c74-a66d-3d6f39d2f002" />
+  <Project Path="Domain/DomainApp/DomainApp.csproj" Id="f2d9c96d-8c66-4ed0-9235-2b7df6d5f003" />
+  <Project Path="Domain/JointTripService.ValueObjects/JointTripService.ValueObjects.csproj" Id="f5f24d6c-7b90-4c65-bc72-6b7f8f0a0004" />
+</Solution>
